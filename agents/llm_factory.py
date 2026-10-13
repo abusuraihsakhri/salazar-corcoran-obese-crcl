@@ -11,7 +11,7 @@ class MockLLM:
 
     def invoke(self, prompt: str) -> str:
         PHIGuard.assert_no_phi(prompt)
-        return f"[{self.system_name} mock]: No clinical verification or model inference is performed. Query preview: '{prompt[:60]}...'."
+        return f"[{self.system_name} mock]: No model inference or clinical verification is performed."
 
 
 class LLMFactory:
@@ -22,8 +22,7 @@ class LLMFactory:
         prov = str(provider).lower()
         if prov in ["mock", "deterministic", "test"]:
             return MockLLM(system_name)
-        elif prov in ["ollama", "local"]:
-            return MockLLM(system_name)
+        raise ValueError(f"Model provider {provider!r} is not implemented; use mock mode")
         elif prov in ["claude", "anthropic"]:
             return MockLLM(system_name)
         elif prov in ["openai", "gpt4"]:
