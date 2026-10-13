@@ -129,3 +129,18 @@ class TestPHIGuard:
     def test_allows_none(self):
         """Should allow None."""
         PHIGuard.assert_no_phi(None)
+
+
+def test_audit_hmac_detects_modified_signed_field():
+    audit = AuditTrail(secret_key="test-key")
+    audit.log("system", "tier", "event", {"value": 1})
+    audit.logs[0]["event_type"] = "forged-event"
+    assert audit.verify_integrity() is False
+
+
+def test_exposed_audit_trail_is_copy():
+    audit = AuditTrail(secret_key="test-key")
+    audit.log("system", "tier", "event", {"value": 1})
+    exposed = audit.get_trail()
+    exposed[0]["event_type"] = "forged-event"
+    assert audit.verify_integrity() is True
