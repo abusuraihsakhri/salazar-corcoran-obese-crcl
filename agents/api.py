@@ -13,7 +13,7 @@ supervisor = SystemSupervisor(model_provider="mock")
 
 app = FastAPI(
     title="Salazar Corcoran Obese Crcl API",
-    description="Enterprise Distributed Component Platform (Clinical & Biomedical AI)",
+    description="Reference CrCl calculation plus unvalidated prototype audit endpoints",
     version="3.0.0-ENTERPRISE",
 )
 
@@ -41,7 +41,7 @@ class ChatRequest(BaseModel):
 
 @app.get("/health")
 def health():
-    return {"status": "HEALTHY", "service": "salazar-corcoran-obese-crcl", "domain": "Clinical & Biomedical AI", "standard": "CAP / CLSI / ISO Standards", "version": "3.0.0-ENTERPRISE"}
+    return {"status": "HEALTHY", "service": "salazar-corcoran-obese-crcl", "domain": "Clinical & Biomedical AI", "standard": "Prototype utility; no clinical certification", "version": "3.0.0-ENTERPRISE"}
 
 
 @app.get("/metrics")
