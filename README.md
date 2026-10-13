@@ -1,165 +1,88 @@
-# Salazar Corcoran Obese CRCL
+# Salazar–Corcoran Creatinine Clearance Calculator
 
-> **Domain:** Clinical Decision Support & Biomedical Computing
-> **Reference Guidelines & Standards:** Standard Clinical Formulations & ISO/IEC Quality Frameworks
+Reference implementation of the 1988 Salazar–Corcoran equations for estimating creatinine clearance (CrCl) in obese adults. Provides a standalone browser calculator, Python API/CLI, and batch CSV processing.
 
-<div align="center">
+**Clinical limitation:** The result is an estimate, not measured clearance or an individualized medication-dosing recommendation. The equation assumes stable serum creatinine and is not intended for children. Estimates may be unreliable in critical illness or rapidly changing renal function.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB.svg?logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688.svg?logo=fastapi&logoColor=white)
-![Audit Trail](https://img.shields.io/badge/Audit-HMAC--SHA256_Tamper--Evident-brightgreen.svg)
-![Zero-PHI Guard](https://img.shields.io/badge/Guard-Zero--PHI_Outbound-blue.svg)
-![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg?logo=docker&logoColor=white)
+## Browser calculator
 
-</div>
+The static application is in [web/index.html](web/index.html). It provides:
 
----
+- Male/female equation selection and explicit units (years, kg, m, mg/dL).
+- Estimated CrCl in **mL/min** (not indexed to 1.73 m²).
+- Local CSV upload, calculation, validation, and results download.
+- No external calculation backend, account, analytics, cookies, or upload.
 
-## What It Does
+The GitHub Pages publication workflow is configured in this repository. A live URL will be added below the title only after deployment and browser access are verified.
 
-Salazar-Corcoran CrCl Calculator for Obese Patients calculates creatinine clearance in morbidly obese patients using fat-free body mass equations.
+To use it locally, run:
 
-Zero-dependency Python implementation with single and batch evaluation.
+    python -m http.server 8000 -d web
 
-Author: Dr. Abu Suraih Sakhri
-License: MIT
+Then open http://localhost:8000/ in a modern browser.
 
----
+**CSV schema:** required headers are sex, age_years, weight_kg, height_m, and serum_creatinine_mg_dl. Additional columns are preserved. See [sample.csv](sample.csv). Browser batch limit: 2 MiB and 2,000 data rows. Do not use real identifying patient information on public devices.
 
-## Installation
+## Clinical formula
 
-```bash
-# Clone the repository
-git clone https://github.com/abusuraihsakhri/salazar-corcoran-obese-crcl.git
-cd salazar-corcoran-obese-crcl
+Inputs are actual body weight in kg, height in metres, age in years, and serum creatinine (SCr) in mg/dL.
 
-# Install dependencies
-pip install -r requirements.txt
-```
+For men:
 
----
+    CrCl = (137 - age) × (0.285 × weight + 12.1 × height²) / (51 × SCr)
 
-## Key Capabilities & Algorithmic Modules
+For women:
 
-### Analytical Functions
+    CrCl = (146 - age) × (0.287 × weight + 9.74 × height²) / (60 × SCr)
 
-- **`calculate_metrics()`**: Core domain algorithm for salazar-corcoran-obese-crcl.
-- **`process_single()`** — calculates and validates single case parameters.
-- **`process_batch()`** — processes batch CSV files with error handling.
-- **`main()`** — CLI entry point with subcommands.
+Output: **mL/min**. Calculations retain full precision until presentation, then round to two decimal places.
 
----
+Examples: male aged 45 years, 120 kg, 1.75 m, SCr 1.2 mg/dL → **107.12 mL/min**. Female aged 55 years, 110 kg, 1.65 m, SCr 1.4 mg/dL → **62.93 mL/min**.
 
-## Mathematical Formulation & Logic
+**Primary reference:** Salazar DE, Corcoran GB. Predicting creatinine clearance and renal drug clearance in obese patients from estimated fat-free body mass. *Am J Med*. 1988;84(6):1053–1060. [PMID: 3376975](https://pubmed.ncbi.nlm.nih.gov/3376975/); DOI: 10.1016/0002-9343(88)90310-5.
 
-```text
-score = primary_val
-for idx, nv in enumerate(additional_vals, start=2):
-    score += nv * (1.0 / idx)
-rounded_score = round(score, 2)
-```
+A study of obese critically ill patients reported clinically unacceptable agreement between estimates and measured 24-hour urinary clearance. See [PMID: 8602383](https://pubmed.ncbi.nlm.nih.gov/8602383/). For consequential clinical decisions, consult current guidance and consider direct measurement when appropriate.
 
----
+## Python usage
 
-## CLI Quickstart & Usage
+Requires Python 3.10+. The **core formula uses only the standard library**. Optional FastAPI/legacy components and tests depend on [requirements.txt](requirements.txt).
 
-### 1. Single Case Evaluation
-```bash
-python -m salazar_corcoran single --v1 14.5 --v2 4.2 --v3 1.8
-```
+    python -m pip install -r requirements.txt
+    python -m salazar_corcoran single --sex male --age-years 45 --weight-kg 120 --height-m 1.75 --serum-creatinine-mg-dl 1.2
+    python -m salazar_corcoran batch -i sample.csv -o results.csv
 
-### 2. Batch CSV Processing
-```bash
-python -m salazar_corcoran batch -i sample.csv -o results.csv
-```
+Unrounded programmatic result:
 
-### 3. Enterprise CLI (requires agents package)
-```bash
-# Audit single task
-python cli.py audit --task-id TASK-001 --primary 28.5 --secondary 14.2
+    from salazar_corcoran import calculate_creatinine_clearance
+    crcl = calculate_creatinine_clearance(sex="female", age_years=55, weight_kg=110, height_m=1.65, serum_creatinine_mg_dl=1.4)
 
-# Batch processing
-python cli.py batch -i sample.csv -o results.csv
+Missing, nonfinite, and invalid inputs raise descriptive errors. CSV batches validate all rows before writing output. Potential spreadsheet formulas in exported text cells are escaped.
 
-# Verify audit trail integrity
-python cli.py verify-audit
+## Optional API and legacy components
 
-# Launch API server
-python cli.py serve --host 127.0.0.1 --port 8000
-```
+Start the server with:
 
-### Parameter Reference
-- `--v1`: Primary parameter (float, default: 10.0)
-- `--v2`: Secondary parameter (float, default: 5.0)
-- `--v3`: Tertiary parameter (float, default: 2.0)
+    python cli.py serve --host 127.0.0.1 --port 8000
 
-### Input Data Schema
+- POST /api/crcl accepts the five clinical inputs, returning the estimate.
+- GET /health and GET /metrics expose JSON health/counter information.
+- Legacy /api/audit, /api/chat, and /api/audit/logs are **generic prototype utilities**, not Salazar–Corcoran clinical decision rules. Mock chat does not perform clinical verification or inference.
+- **No authentication is provided**. Do not expose the server on untrusted networks or send identifying patient data. Legacy regex matching is not reliable de-identification or a HIPAA compliance control.
+- The in-memory audit metadata is HMAC-SHA256-signed; persistent production-grade audit logging is not implemented.
 
-| Field | Description | Requirement |
-|:------|:------------|:------------|
-| `Patient_ID` | Patient identifier | Required |
-| `v1` | Primary measurement | Required |
-| `v2` | Secondary measurement | Required |
-| `v3` | Tertiary measurement | Required |
+Container example: build with Docker using [Dockerfile](Dockerfile), then deploy only behind appropriate network controls.
 
----
+## Testing
 
-## Security & Enterprise Architecture
+    python -m pytest -q
+    cd web && npm test && node --check app.js
 
-* **Zero-PHI Outbound Interceptor:** Active regex inspection blocking SSNs, MRNs, phone numbers, and patient identifiers.
-* **Tamper-Evident HMAC-SHA256 Audit Trail:** Chained, cryptographically signed logs for every evaluation and state transition.
-* **Secure Key Management:** Audit signing key sourced from `AUDIT_SECRET_KEY` environment variable (never hardcoded).
-* **FastAPI & Prometheus Telemetry:** Exposes OpenAPI 3.1 REST endpoints and operational Prometheus metrics (`/metrics`).
+Python tests cover reference values, input validation, CSV processing, and legacy prototype regression. Node.js 22 tests exercise the browser computational module. GitHub Actions runs Python 3.10–3.12 and Node.js.
 
----
+## Privacy and compatibility
 
-## Testing & Verification
+The browser app calculates locally in memory; uploaded CSV is not sent to a server. Modern browsers supporting ECMAScript modules, File/Blob APIs, and local downloads are required. GitHub Pages serves JavaScript directly; **Python does not run in the browser**, and Pyodide is unnecessary here.
 
-Run the automated test suite:
+## License
 
-```bash
-pytest -v
-```
-
-Execute high-throughput batch simulation benchmarks:
-
-```bash
-python simulator.py 1000
-```
-
----
-
-## Container Deployment
-
-```bash
-# Build and run with Docker
-docker build -t salazar-corcoran-obese-crcl .
-docker run -p 8000:8000 -e AUDIT_SECRET_KEY=your-secret-key salazar-corcoran-obese-crcl
-
-# Or use docker-compose
-AUDIT_SECRET_KEY=your-secret-key docker-compose up
-```
-
----
-
-## Project Structure
-
-```
-salazar-corcoran-obese-crcl/
-├── agents/                 # Enterprise multi-agent system
-│   ├── api.py             # FastAPI REST endpoints
-│   ├── base.py            # Security, PHI guard, HMAC audit
-│   ├── models.py          # Pydantic data models
-│   ├── supervisor.py      # Orchestrator
-│   ├── workers.py         # Specialized worker agents
-│   └── ...
-├── tests/                 # Test suite
-├── cli.py                 # Enterprise CLI
-├── salazar_corcoran.py    # Core algorithm
-├── enrichment.py          # Feature engines
-├── simulator.py           # Stress testing
-├── requirements.txt       # Python dependencies
-├── Dockerfile             # Container build
-└── docker-compose.yml     # Container orchestration
-```
+MIT — see [LICENSE](LICENSE).
