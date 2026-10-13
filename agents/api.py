@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from .base import AuditLogger, PHIGuard
 from .models import SystemTaskPayload, ConsensusDossier
 from .supervisor import SystemSupervisor
+from salazar_corcoran import calculate_metrics
 
 supervisor = SystemSupervisor(model_provider="mock")
 
@@ -15,6 +16,23 @@ app = FastAPI(
     description="Enterprise Distributed Component Platform (Clinical & Biomedical AI)",
     version="3.0.0-ENTERPRISE",
 )
+
+
+class CrClRequest(BaseModel):
+    sex: str
+    age_years: float
+    weight_kg: float
+    height_m: float
+    serum_creatinine_mg_dl: float
+
+
+@app.post("/api/crcl")
+def api_crcl(payload: CrClRequest):
+    """Explicit clinical calculation, independent of the legacy mock audit system."""
+    try:
+        return calculate_metrics(**payload.model_dump())
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 class ChatRequest(BaseModel):
@@ -52,4 +70,4 @@ def api_chat(req: ChatRequest):
 
 @app.get("/api/audit/logs")
 def api_audit_logs():
-    return {"audit_trail": AuditLogger.get_trail(), "verified": AuditLogger.verify_integrity()}
+    return {"audit_blocks_total": len(AuditLogger.get_trail()), "verified": AuditLogger.verify_integrity()}
