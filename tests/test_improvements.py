@@ -13,79 +13,42 @@ from agents.base import AuditTrail, PHIGuard, SecurityException
 
 
 class TestCalculateMetricsValidation:
-    """Test input validation in calculate_metrics."""
+    """The domain algorithm must return CrCl, not an arbitrary risk tier."""
 
-    def test_reject_nan_values(self):
-        """NaN values should be rejected, not included in calculation."""
-        res = calculate_metrics(v1=10.0, v2=float('nan'))
-        assert res["score"] == 10.0
-        assert res["inputs_evaluated"] == 1
+    @pytest.mark.parametrize("bad", [
+        {"weight_kg": float("nan")}, {"height_m": float("inf")},
+        {"serum_creatinine_mg_dl": 0}, {"age_years": -1}, {"sex": "invalid"},
+    ])
+    def test_reject_invalid(self, bad):
+        values = dict(sex="male", age_years=45, weight_kg=120,
+                      height_m=1.75, serum_creatinine_mg_dl=1.2)
+        values.update(bad)
+        with pytest.raises(ValueError):
+            calculate_metrics(**values)
 
-    def test_reject_inf_values(self):
-        """Infinity values should be rejected."""
-        res = calculate_metrics(v1=10.0, v2=float('inf'))
-        assert res["score"] == 10.0
-        assert res["inputs_evaluated"] == 1
-
-    def test_reject_negative_inf_values(self):
-        """Negative infinity values should be rejected."""
-        res = calculate_metrics(v1=10.0, v2=float('-inf'))
-        assert res["score"] == 10.0
-        assert res["inputs_evaluated"] == 1
-
-    def test_normal_values_work(self):
-        """Normal finite values should work correctly."""
-        res = calculate_metrics(v1=10.0, v2=5.0)
-        assert res["score"] == 12.5  # 10 + 5*(1/2)
-        assert res["inputs_evaluated"] == 2
-
-    def test_classification_low(self):
-        """Score < 10 should be Low / Standard."""
-        res = calculate_metrics(v1=5.0)
-        assert res["classification"] == "Low / Standard"
-
-    def test_classification_moderate(self):
-        """Score 10-25 should be Moderate / Intermediate."""
-        res = calculate_metrics(v1=15.0)
-        assert res["classification"] == "Moderate / Intermediate"
-
-    def test_classification_high(self):
-        """Score >= 25 should be High / Severe."""
-        res = calculate_metrics(v1=30.0)
-        assert res["classification"] == "High / Severe"
-
-    def test_string_values_ignored_for_numeric(self):
-        """String values should not contribute to numeric score."""
-        res = calculate_metrics(v1=10.0, name="test")
-        assert res["score"] == 10.0
-        assert res["inputs_evaluated"] == 2  # Both counted as inputs
+    def test_reference_value(self):
+        result = calculate_metrics(sex="male", age_years=45, weight_kg=120,
+                                   height_m=1.75, serum_creatinine_mg_dl=1.2)
+        assert result["creatinine_clearance_ml_min"] == 107.12
 
 
 class TestProcessBatchErrorHandling:
-    """Test error handling in process_batch."""
-
-    def test_file_not_found_raises_error(self, tmp_path):
-        """Non-existent input file should raise FileNotFoundError."""
+    def test_missing_file(self, tmp_path):
         with pytest.raises(FileNotFoundError):
-            process_batch(str(tmp_path / "nonexistent.csv"), str(tmp_path / "out.csv"))
+            process_batch(str(tmp_path / "missing.csv"), str(tmp_path / "out.csv"))
 
-    def test_empty_csv_raises_error(self, tmp_path):
-        """Empty CSV file should raise ValueError."""
-        csv_in = tmp_path / "empty.csv"
-        csv_in.write_text("", encoding="utf-8")
+    def test_empty_csv(self, tmp_path):
+        source = tmp_path / "empty.csv"
+        source.write_text("", encoding="utf-8")
         with pytest.raises(ValueError, match="empty or has no headers"):
-            process_batch(str(csv_in), str(tmp_path / "out.csv"))
+            process_batch(str(source), str(tmp_path / "out.csv"))
 
-    def test_valid_batch_processing(self, tmp_path):
-        """Valid batch should process correctly."""
-        csv_in = tmp_path / "in.csv"
-        csv_out = tmp_path / "out.csv"
-        csv_in.write_text("Patient_ID,v1,v2\nPT-001,15.0,3.0\n", encoding="utf-8")
-        process_batch(str(csv_in), str(csv_out))
-        assert csv_out.exists()
-        content = csv_out.read_text(encoding="utf-8")
-        assert "PT-001" in content
-        assert "score" in content
+    def test_valid_csv(self, tmp_path):
+        source, target = tmp_path / "in.csv", tmp_path / "out.csv"
+        source.write_text("case_id,sex,age_years,weight_kg,height_m,serum_creatinine_mg_dl\n"
+                          "PT-001,male,45,120,1.75,1.2\n", encoding="utf-8")
+        assert process_batch(str(source), str(target)) == 1
+        assert "107.12" in target.read_text(encoding="utf-8")
 
 
 class TestAuditTrailSecurity:
@@ -166,3 +129,18 @@ class TestPHIGuard:
     def test_allows_none(self):
         """Should allow None."""
         PHIGuard.assert_no_phi(None)
+
+
+def test_audit_hmac_detects_modified_signed_field():
+    audit = AuditTrail(secret_key="test-key")
+    audit.log("system", "tier", "event", {"value": 1})
+    audit.logs[0]["event_type"] = "forged-event"
+    assert audit.verify_integrity() is False
+
+
+def test_exposed_audit_trail_is_copy():
+    audit = AuditTrail(secret_key="test-key")
+    audit.log("system", "tier", "event", {"value": 1})
+    exposed = audit.get_trail()
+    exposed[0]["event_type"] = "forged-event"
+    assert audit.verify_integrity() is True

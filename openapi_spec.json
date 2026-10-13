@@ -1,112 +1,112 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Salazar Corcoran Obese Crcl API",
-    "description": "Enterprise Distributed Component Platform (Clinical & Cryptographic AI) adhering to CAP / CLSI / NIST Standards.",
-    "version": "3.0.0-ENTERPRISE",
-    "contact": {
-      "name": "Dr. Abu Suraih Sakhri",
-      "url": "https://github.com/abusuraihsakhri"
-    }
+    "title": "Salazar-Corcoran Creatinine Clearance API",
+    "description": "Reference CrCl estimation plus separate demonstration-only audit endpoints. No authentication or clinical certification.",
+    "version": "3.0.0"
   },
   "paths": {
-    "/health": {
-      "get": {
-        "summary": "Health and metadata check",
+    "/api/crcl": {
+      "post": {
+        "summary": "Calculate estimated creatinine clearance (mL/min)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "sex",
+                  "age_years",
+                  "weight_kg",
+                  "height_m",
+                  "serum_creatinine_mg_dl"
+                ],
+                "properties": {
+                  "sex": {
+                    "type": "string",
+                    "enum": [
+                      "male",
+                      "female"
+                    ]
+                  },
+                  "age_years": {
+                    "type": "number",
+                    "description": "Adult age in years"
+                  },
+                  "weight_kg": {
+                    "type": "number",
+                    "description": "Actual weight in kg"
+                  },
+                  "height_m": {
+                    "type": "number",
+                    "description": "Height in metres"
+                  },
+                  "serum_creatinine_mg_dl": {
+                    "type": "number",
+                    "description": "Serum creatinine in mg/dL"
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
-            "description": "System optimal"
+            "description": "Salazar-Corcoran CrCl estimate in mL/min"
+          },
+          "422": {
+            "description": "Missing or invalid input"
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health metadata",
+        "responses": {
+          "200": {
+            "description": "JSON metadata"
           }
         }
       }
     },
     "/metrics": {
       "get": {
-        "summary": "Prometheus operational metrics",
+        "summary": "JSON counters, not Prometheus exposition format",
         "responses": {
           "200": {
-            "description": "Prometheus text metrics"
+            "description": "JSON counters"
           }
         }
       }
     },
     "/api/audit": {
       "post": {
-        "summary": "Dispatch task payload across specialized workers",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "task_id": {
-                    "type": "string"
-                  },
-                  "target_identifier": {
-                    "type": "string"
-                  },
-                  "primary_metric": {
-                    "type": "number"
-                  },
-                  "secondary_metric": {
-                    "type": "number"
-                  },
-                  "status_descriptor": {
-                    "type": "string"
-                  },
-                  "is_critical_flag": {
-                    "type": "boolean"
-                  }
-                },
-                "required": [
-                  "task_id",
-                  "target_identifier",
-                  "primary_metric"
-                ]
-              }
-            }
-          }
-        },
+        "summary": "Demonstration-only generic audit processing",
         "responses": {
           "200": {
-            "description": "Consensus dossier with HMAC signature"
+            "description": "Prototype dossier"
           }
         }
       }
     },
     "/api/chat": {
       "post": {
-        "summary": "Air-gapped supervisory conversational assistant",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "query": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "query"
-                ]
-              }
-            }
-          }
-        },
+        "summary": "Mock response only, not model inference",
         "responses": {
           "200": {
-            "description": "Supervisory response"
+            "description": "Non-clinical mocked message"
           }
         }
       }
     },
     "/api/audit/logs": {
       "get": {
-        "summary": "Retrieve and cryptographically verify HMAC audit trail",
+        "summary": "Audit block count and integrity status only",
         "responses": {
           "200": {
-            "description": "Cryptographic audit trail"
+            "description": "Counts and boolean HMAC integrity check"
           }
         }
       }

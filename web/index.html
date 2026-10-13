@@ -1,236 +1,86 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Salazar Corcoran Obese Crcl — Operations Console</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg: #090d16;
-            --card: #111827;
-            --border: #1f293d;
-            --accent: #3b82f6;
-            --accent-glow: rgba(59, 130, 246, 0.25);
-            --text: #f3f4f6;
-            --text-muted: #9ca3af;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --success: #10b981;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            padding: 2rem;
-            min-height: 100vh;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        .header-title h1 { font-size: 1.6rem; font-weight: 700; color: #fff; }
-        .header-title p { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem; }
-        .badge {
-            display: inline-block;
-            padding: 0.3rem 0.8rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            background: var(--accent-glow);
-            color: var(--accent);
-            border: 1px solid var(--accent);
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1.2fr;
-            gap: 1.5rem;
-        }
-        .card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        }
-        .card h2 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .form-group { margin-bottom: 1rem; }
-        label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; }
-        input, select, textarea {
-            width: 100%;
-            padding: 0.65rem 0.9rem;
-            background: #0d1322;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: #fff;
-            font-family: inherit;
-            font-size: 0.9rem;
-        }
-        input:focus, textarea:focus { outline: none; border-color: var(--accent); }
-        .btn {
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            padding: 0.7rem 1.4rem;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-            width: 100%;
-        }
-        .btn:hover { background: #2563eb; }
-        .terminal {
-            background: #060911;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
-            color: #10b981;
-            height: 380px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-        }
-        .metrics-bar {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        .metric-box {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
-            text-align: center;
-        }
-        .metric-val { font-size: 1.4rem; font-weight: 700; color: #fff; margin-top: 0.25rem; }
-        .metric-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Salazar–Corcoran creatinine-clearance calculator for obese adults. Local browser calculations and CSV processing.">
+  <title>Salazar–Corcoran | Creatinine Clearance</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui,-apple-system,'Segoe UI',sans-serif; background:#0b1220; color:#e6edf5; }
+    * {box-sizing:border-box}
+    body {margin:0; min-height:100vh; line-height:1.55}
+    main {max-width:1040px; margin:auto; padding:32px 20px 70px}
+    h1 {font-size:clamp(1.8rem,4vw,2.7rem); letter-spacing:-.035em; margin:0 0 8px}
+    h2 {font-size:1.2rem; margin-top:0}
+    .subtitle,.muted {color:#a5b4c8}
+    .subtitle {max-width:750px; margin:0 0 22px}
+    .eyebrow {color:#7dd3fc; font-size:.76rem; letter-spacing:.12em; font-weight:700; text-transform:uppercase; margin:0 0 12px}
+    .grid {display:grid; grid-template-columns:minmax(0,1.25fr) minmax(0,.9fr); gap:18px}
+    .card {background:#151f30; border:1px solid #334155; border-radius:14px; padding:24px; min-width:0}
+    .form-grid {display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:15px}
+    label {display:block; font-size:.91rem; font-weight:600; margin-bottom:6px}
+    input,select {display:block; width:100%; border-radius:7px; padding:11px 12px; border:1px solid #64748b; color:#f1f5f9; background:#0d1727; font:inherit}
+    input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible {outline:3px solid #7dd3fc; outline-offset:2px}
+    button,.download {display:inline-flex; align-items:center; justify-content:center; cursor:pointer; color:#061626; background:#7dd3fc; border:0; border-radius:8px; padding:12px 18px; font:inherit; font-weight:700; margin-top:18px; text-decoration:none}
+    button:hover,.download:hover {background:#bae6fd}
+    .result {margin-top:18px; border-radius:10px; background:#092d39; border:1px solid #0f766e; padding:20px}
+    .big {font-size:2.65rem; line-height:1.2; font-variant-numeric:tabular-nums; font-weight:700; color:#bef264}
+    .error {color:#fecaca; min-height:1.35em}
+    .note {border-left:3px solid #fb923c; padding-left:14px; margin:16px 0; color:#cbd5e1}
+    code {color:#c4b5fd; overflow-wrap:anywhere}
+    .equation {font-size:.91rem; background:#0d1727; padding:14px; border-radius:8px; overflow-wrap:anywhere; margin-top:14px}
+    .foot {padding-top:23px; font-size:.87rem; color:#a5b4c8}
+    a {color:#7dd3fc}
+    [hidden] {display:none !important}
+    @media (max-width:760px) {.grid {grid-template-columns:1fr} main {padding-top:22px}}
+    @media (max-width:430px) {.form-grid {grid-template-columns:1fr} .card {padding:18px}}
+  </style>
 </head>
 <body>
-
-    <div class="header">
-        <div class="header-title">
-            <h1>Salazar Corcoran Obese Crcl</h1>
-            <p>Domain: Clinical & Cryptographic AI | Standard: CAP / CLSI / NIST Standards | LabMind-Atlas Architecture</p>
+<main>
+  <p class="eyebrow">Renal pharmacokinetics · Formula reference tool</p>
+  <h1>Salazar–Corcoran Creatinine Clearance</h1>
+  <p class="subtitle">Estimated creatinine clearance in obese adults using the original sex-specific 1988 equations. Calculations run locally in this browser, without sending inputs to a server.</p>
+  <div class="grid">
+    <section class="card" aria-labelledby="calculate-title">
+      <h2 id="calculate-title">Single calculation</h2>
+      <form id="single-form" novalidate>
+        <div class="form-grid">
+          <div><label for="sex">Equation coefficient</label><select id="sex" name="sex" required><option value="male">Male</option><option value="female">Female</option></select></div>
+          <div><label for="age">Age (years)</label><input id="age" name="age_years" type="number" min="18" max="136" step="any" value="45" required></div>
+          <div><label for="weight">Actual body weight (kg)</label><input id="weight" name="weight_kg" type="number" min="0.01" step="any" value="120" required></div>
+          <div><label for="height">Height (m)</label><input id="height" name="height_m" type="number" min="0.01" step="any" value="1.75" required></div>
+          <div class="wide"><label for="creatinine">Serum creatinine (mg/dL)</label><input id="creatinine" name="serum_creatinine_mg_dl" type="number" min="0.01" step="any" value="1.2" required></div>
         </div>
-        <div>
-            <span class="badge">Air-Gapped Active</span>
-            <span class="badge" style="background: rgba(16,185,129,0.2); color: #10b981; border-color: #10b981;">Zero-PHI Guard Active</span>
-        </div>
+        <button type="submit">Calculate CrCl</button>
+      </form>
+      <p id="single-error" class="error" role="alert" aria-live="polite"></p>
+      <section class="result" id="single-result" hidden aria-live="polite" aria-label="Calculated creatinine clearance">
+        <div class="muted">Estimated CrCl (mL/min)</div><div class="big"><span id="crcl"></span></div>
+        <div class="muted">Unindexed estimate · Not a measured creatinine clearance</div>
+      </section>
+    </section>
+    <div>
+      <section class="card" aria-labelledby="batch-title">
+        <h2 id="batch-title">Batch CSV</h2>
+        <p class="muted">Choose a CSV with headers <code>sex, age_years, weight_kg, height_m, serum_creatinine_mg_dl</code>. Optional extra columns are preserved.</p>
+        <label for="csv-input">CSV file (up to 2 MiB / 2,000 records)</label>
+        <input id="csv-input" type="file" accept=".csv,text/csv">
+        <p id="batch-message" aria-live="polite" role="status"></p>
+        <a id="download" class="download" href="#" hidden>Download results CSV</a>
+      </section>
+      <section class="card" style="margin-top:18px" aria-labelledby="details-title">
+        <h2 id="details-title">Equation and limitations</h2>
+        <div class="equation"><strong>Male:</strong> (137 − age) × (0.285 × weight + 12.1 × height²) / (51 × SCr)</div>
+        <div class="equation"><strong>Female:</strong> (146 − age) × (0.287 × weight + 9.74 × height²) / (60 × SCr)</div>
+        <p class="muted">Weight in kg, height in m, SCr in mg/dL, result in mL/min.</p>
+        <p class="note">For educational or independent verification use only. Assumes stable serum creatinine; estimation may be inaccurate in critical illness or rapidly changing renal function. Do not use this estimate alone for drug dosing or clinical decisions.</p>
+      </section>
     </div>
-
-    <div class="metrics-bar">
-        <div class="metric-box">
-            <div class="metric-label">System Status</div>
-            <div class="metric-val" style="color: var(--success);" id="m-status">OPTIMAL</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">Tasks Processed</div>
-            <div class="metric-val" id="m-tasks">142</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">Audit Blocks Signed</div>
-            <div class="metric-val" id="m-audit">142</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">PHI Interceptions</div>
-            <div class="metric-val" style="color: var(--accent);" id="m-phi">0</div>
-        </div>
-    </div>
-
-    <div class="grid">
-        <div class="card">
-            <h2>⚙️ Dispatch Distributed Component Audit</h2>
-            <div class="form-group">
-                <label>Task / Sample ID</label>
-                <input type="text" id="task_id" value="TASK-2026-LIVE-01">
-            </div>
-            <div class="form-group">
-                <label>Target Identifier</label>
-                <input type="text" id="target_id" value="SPECIMEN-ALPHA-77">
-            </div>
-            <div class="form-group">
-                <label>Primary Measurement / Value</label>
-                <input type="number" id="primary_metric" value="29.4" step="0.1">
-            </div>
-            <div class="form-group">
-                <label>Secondary Metric / Kinetic Index</label>
-                <input type="number" id="secondary_metric" value="14.8" step="0.1">
-            </div>
-            <div class="form-group">
-                <label>Status / Phenotype Descriptor</label>
-                <input type="text" id="status_descriptor" value="DISCORDANT_ANOMALY">
-            </div>
-            <div class="form-group">
-                <label><input type="checkbox" id="is_critical" checked> Trigger Emergency / Critical Flag</label>
-            </div>
-            <button class="btn" onclick="runAudit()">Execute Distributed Component Audit</button>
-        </div>
-
-        <div class="card">
-            <h2>📊 Real-Time Consensus Dossier & Audit Log</h2>
-            <div class="terminal" id="outputConsole">// Salazar Corcoran Obese Crcl Operations Console Ready
-// Connection established with Air-Gapped Supervisor
-// Cryptographic HMAC-SHA256 audit ledger loaded.
-// Ready for live task payload dispatch...</div>
-        </div>
-    </div>
-
-    <script>
-        async function runAudit() {
-            const consoleEl = document.getElementById('outputConsole');
-            consoleEl.innerText = "// Dispatching task across specialized workers...
-// Invoking InvariantQCWorker, SafetyEscalationWorker, ProtocolWorker...";
-
-            const payload = {
-                task_id: document.getElementById('task_id').value,
-                target_identifier: document.getElementById('target_id').value,
-                primary_metric: parseFloat(document.getElementById('primary_metric').value),
-                secondary_metric: parseFloat(document.getElementById('secondary_metric').value),
-                status_descriptor: document.getElementById('status_descriptor').value,
-                is_critical_flag: document.getElementById('is_critical').checked
-            };
-
-            try {
-                const res = await fetch('/api/audit', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const data = await res.json();
-                consoleEl.innerText = JSON.stringify(data, null, 2);
-                document.getElementById('m-tasks').innerText = parseInt(document.getElementById('m-tasks').innerText) + 1;
-                document.getElementById('m-audit').innerText = parseInt(document.getElementById('m-audit').innerText) + 1;
-            } catch (err) {
-                consoleEl.innerText = "// Offline / Simulation Output:\n" + JSON.stringify({
-                    dossier_id: "DOSSIER-SIM-" + Math.floor(Math.random()*10000),
-                    system: "salazar-corcoran-obese-crcl",
-                    domain: "Clinical & Cryptographic AI",
-                    task_id: payload.task_id,
-                    overall_urgency: payload.is_critical_flag ? "CRITICAL_STAT_PANIC" : "ELEVATED_RISK",
-                    integrity_status: "DISCORDANT_ANOMALY",
-                    alerts: [
-                        { worker: "InvariantQCWorker", alert: "Primary metric exceeds upper reference bound" },
-                        { worker: "SafetyEscalationWorker", alert: "Critical emergency interlock flag active" }
-                    ],
-                    audit_hash: "HMAC_SHA256_e83f9a72b941d6c381f9"
-                }, null, 2);
-            }
-        }
-    </script>
+  </div>
+  <div class="foot">Reference: Salazar DE, Corcoran GB. <em>Am J Med.</em> 1988;84:1053–1060. <a href="https://pubmed.ncbi.nlm.nih.gov/3376975/" target="_blank" rel="noopener noreferrer">PMID 3376975</a>. No cookies, analytics, or uploaded data storage.</div>
+</main>
+<script type="module" src="./app.js"></script>
 </body>
 </html>
